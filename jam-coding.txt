@@ -1,0 +1,130 @@
+# JAM CODING — LIBRARY API
+Target: 25 jam
+
+### Tanggal: 16 November 2026
+Mulai: 18:40 WIB
+Selesai: 19:52 WIB
+Durasi: 01:12
+
+Pekerjaan:
+- Setup Laravel 12.72.0
+- Konfigurasi database MySQL
+- Membuat migration users
+- Membuat migration books
+- Membuat migration loans
+- Memahami foreign key, nullable, timestamps, soft deletes
+- Menjalankan php artisan migrate
+- Memverifikasi tabel melalui phpMyAdmin
+
+### Tanggal: 17 November 2026
+Mulai: 17:50 WIB
+Selesai: 18:48 WIB
+Durasi: 00:58
+
+Pekerjaan:
+- Konfigurasi Model User dan Book
+- Memahami $fillable, $hidden, casts, dan SoftDeletes
+- Memahami firstOrCreate() dan firstOrFail()
+- Membuat Seeder akun admin dan member
+- Membuat Seeder 15 data buku
+- Memahami foreach dan nested array
+
+### Tanggal: 18 November 2026
+Mulai: Belum tercatat
+Selesai: Belum tercatat
+Durasi: Belum dihitung
+
+Pekerjaan berdasarkan riwayat pembelajaran:
+- Melanjutkan pengembangan Book API
+- Mempelajari BookController
+- Membahas method index(), show(), dan pengelolaan data buku
+- Memahami penggunaan find() dan findOrFail()
+- Mempelajari response JSON
+- Melanjutkan operasi CRUD buku
+
+### Tanggal: 19 November 2026
+Mulai: Belum tercatat
+Selesai: Belum tercatat
+Durasi: Belum dihitung
+
+Pekerjaan berdasarkan riwayat pembelajaran:
+- Melanjutkan pengembangan Book API
+- Mempelajari validasi request
+- Memahami penggunaan slug dan Str::slug()
+- Membahas penggunaan $request->user()
+- Melanjutkan konfigurasi dan pengujian endpoint
+- Menghadapi kendala Postman
+
+### Tanggal: 20 November 2026
+Mulai: Belum tercatat
+Selesai: Belum tercatat
+Durasi: Belum dihitung
+
+Pekerjaan berdasarkan riwayat pembelajaran:
+- Mempelajari relasi User, Book, dan Loan
+- Memahami HasMany dan BelongsTo
+- Praktik relasi melalui Laravel Tinker
+- Membuat data transaksi peminjaman percobaan
+- Memahami relationship query dan collection
+- Mempelajari penggunaan load() untuk memuat ulang relasi
+
+### Tanggal: 21 November 2026 — Sesi 1
+Mulai: 13:09 WIB
+Selesai: 13:48 WIB
+Durasi: 00:39
+
+Pekerjaan:
+- Menguji isolasi riwayat pinjaman member1 dan member2
+- Membuat endpoint POST /api/loans
+- Memahami validasi book_id
+- Menggunakan $r->user() untuk mengambil user login
+- Menggunakan Book::findOrFail()
+- Memahami relasi HasMany untuk pengecekan pinjaman
+- Menggunakan whereNull('returned_at')->exists()
+- Membuat pencegahan peminjaman ganda
+- Memahami HTTP 409 Conflict
+- Menggunakan $user->loans()->create()
+- Menguji peminjaman berhasil melalui Postman (201)
+- Menguji penolakan peminjaman ganda (409)
+
+### Tanggal: 21 November 2026 — Sesi 2
+Mulai: 18:34 WIB
+Selesai: 19:33 WIB
+Durasi: 00:58
+
+Pekerjaan:
+- Membuat endpoint PATCH /api/loans/{id}/return
+- Memahami parameter route {id}
+- Menggunakan $user->loans()->findOrFail($id)
+- Membuat pengecekan returned_at
+- Memahami now() dan save()
+- Membuat pencegahan pengembalian dua kali (409)
+- Menguji pengembalian berhasil (200)
+- Menguji kepemilikan transaksi antar-user (404)
+- Menguji peminjaman ulang setelah pengembalian (201)
+- Memahami data ownership dan authorization
+
+---
+
+## REKAP JAM CODING
+
+| Tanggal | Durasi |
+|---|---:|
+| 16 November | 01:12 |
+| 17 November | 00:58 |
+| 18 November | Belum tercatat |
+| 19 November | Belum tercatat |
+| 20 November | Belum tercatat |
+| 21 November Sesi 1 | 00:39 |
+| 21 November Sesi 2 | 00:58 |
+
+Subtotal durasi yang sudah memiliki catatan waktu:
+03:47 / 25:00
+
+Sisa target berdasarkan waktu tercatat:
+21 jam 13 menit.
+
+CATATAN:
+Tanggal 18, 19, dan 20 sudah dimasukkan berdasarkan riwayat pembelajaran, tetapi durasinya sengaja tidak dikarang. Total 03:47 belum mencakup ketiga tanggal tersebut.
+
+Waktu sesi 21 November dihitung dari rentang aktivitas percakapan, bukan stopwatch aktif mengetik.

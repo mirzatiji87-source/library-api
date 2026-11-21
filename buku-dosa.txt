@@ -1,0 +1,434 @@
+# BUKU DOSA — LEARNING ERROR LOG
+Project: Library API
+Environment: Laravel 12.72.0, PHP 8.2.12, MySQL, Postman
+
+Tujuan:
+Mencatat kesalahan teknis, kesalahan logika, pola kebingungan, dan kebiasaan belajar yang perlu diperbaiki.
+
+---
+
+## DOSA 001 — Postman gagal dibuka
+
+Tanggal: 19–21 November 2026 (tanggal kejadian persis perlu dikonfirmasi)
+Fase: API Testing
+
+Gejala:
+Error loading V8 startup snapshot file
+
+File app.asar ditemukan dalam kondisi 0 byte.
+
+Log updater menunjukkan:
+System.ArgumentException: WriteEntryTo or OpenEntryStream can only be called once.
+
+Penyebab:
+Proses pembaruan Postman mengalami kegagalan ekstraksi file. File aplikasi menjadi tidak lengkap atau rusak.
+
+Solusi:
+- Backup data Postman.
+- Backup data Local AppData.
+- Uninstall Postman yang rusak.
+- Install ulang dari installer resmi.
+- Verifikasi kembali request dan token yang tersimpan.
+
+Pencegahan:
+Jika aplikasi desktop gagal dibuka akibat file instalasi rusak, backup data terlebih dahulu sebelum melakukan reinstall.
+
+Waktu hilang:
+Tidak tercatat.
+
+---
+
+## DOSA 002 — Laravel mengalami Maximum Execution Time
+
+Tanggal: November 2026, sebelum pengujian Book API berhasil
+Fase: Book API / Server
+
+Gejala:
+Maximum execution time of 60 seconds exceeded
+
+Lokasi error:
+vendor/composer/ClassLoader.php
+
+Request yang terdampak:
+GET /api/books
+
+Penyebab:
+Proses request Laravel mengalami timeout. Penyebab teknis pastinya belum berhasil diidentifikasi dari stack trace yang tersedia.
+
+Solusi:
+- Menghentikan php artisan serve menggunakan Ctrl+C.
+- Menjalankan php artisan optimize:clear.
+- Menjalankan ulang php artisan serve.
+- Menguji kembali GET /api/books.
+
+Pencegahan:
+Ketika server Laravel mengalami timeout yang tidak jelas, periksa terminal dan kondisi proses server sebelum langsung mengubah controller.
+
+Waktu hilang:
+Tidak tercatat.
+
+---
+
+## DOSA 003 — Salah menempatkan method PATCH pada Postman
+
+Tanggal: 21 November 2026
+Fase: Loan API / Return Book
+
+Gejala:
+Could not send request
+Error: Invalid protocol: patch http:
+
+Penyebab:
+PATCH ikut diketik ke kolom URL, padahal method HTTP harus dipilih melalui dropdown method Postman.
+
+Solusi:
+Pisahkan konfigurasi:
+- Method: PATCH
+- URL: http://127.0.0.1:8000/api/loans/3/return
+
+Pencegahan:
+Selalu pisahkan method HTTP dan alamat URL di Postman.
+
+Waktu hilang:
+Sekitar 1–2 menit, estimasi.
+
+---
+
+## DOSA 004 — Syntax error ketika membuat token Sanctum
+
+Tanggal: 21 November 2026
+Fase: Loan API / Authentication
+
+Gejala:
+PARSE ERROR
+PHP Parse error: Syntax error, unexpected T_ENCAPSED_AND_WHITESPACE, expecting ')'
+
+Penyebab:
+Urutan pemanggilan method dan tanda kutip tidak benar. User belum memisahkan proses pencarian akun dengan proses pembuatan token.
+
+Solusi:
+Pisahkan menjadi dua langkah:
+
+1. Mencari user:
+User::where('username', 'member2')->firstOrFail();
+
+2. Membuat token:
+$member2->createToken('postman-member2')->plainTextToken;
+
+Pencegahan:
+Di Tinker, ambil objek User terlebih dahulu sebelum memanggil createToken().
+
+Waktu hilang:
+Tidak tercatat.
+
+---
+
+## DOSA 005 — Nama token dianggap sebagai identitas akun
+
+Tanggal: 21 November 2026
+Fase: Loan API / Ownership Testing
+
+Gejala:
+Pengujian pengembalian pinjaman milik member2 menggunakan token yang seharusnya milik member1 menghasilkan HTTP 409, bukan 404.
+
+Penyebab:
+User mengambil akun member2:
+$member = User::where('username', 'member2')->firstOrFail();
+
+Lalu membuat token:
+$member->createToken('member1')->plainTextToken;
+
+Kesalahan konsep:
+Nama token 'member1' tidak mengubah pemilik token menjadi member1. Pemilik token tetap objek User yang memanggil createToken().
+
+Solusi:
+Cari akun member1 terlebih dahulu, lalu buat token melalui objek tersebut.
+
+Pencegahan:
+Selalu verifikasi username dan ID objek User sebelum membuat token untuk pengujian Postman.
+
+Waktu hilang:
+Tidak tercatat.
+
+---
+
+## DOSA 006 — Bingung membedakan Request dan Model User
+
+Tanggal: 21 November 2026
+Fase: Loan API / Return Book
+
+Gejala:
+Menulis:
+$user = $r->loans()->findOrFail($id);
+
+Penyebab:
+Menganggap objek Request memiliki relasi loans(). Padahal $r adalah objek Illuminate\Http\Request, sedangkan relasi loans() ada pada model User.
+
+Solusi:
+Pisahkan pengambilan user dan transaksi:
+
+$user = $r->user();
+$loan = $user->loans()->findOrFail($id);
+
+Pencegahan:
+Pastikan memahami objek yang sedang dipakai sebelum memanggil method atau relasi miliknya.
+
+Waktu hilang:
+Tidak tercatat.
+
+---
+
+## DOSA 007 — Salah memilih kolom validasi
+
+Tanggal: 21 November 2026
+Fase: Loan API / Store
+
+Gejala:
+Awalnya menulis:
+'id' => 'required|string|max:255'
+
+Kemudian sempat menulis:
+'exists:books, id'
+
+Penyebab:
+Masih terbawa pola validasi BookController dan belum membedakan ID transaksi Loan dengan ID buku yang dikirim saat meminjam.
+
+Solusi:
+Gunakan:
+'book_id' => 'required|integer|exists:books,id'
+
+Pencegahan:
+Sebelum menulis validasi, periksa tabel tujuan dan tentukan kolom apa yang benar-benar dikirim oleh client.
+
+Waktu hilang:
+Tidak tercatat.
+
+---
+
+## DOSA 008 — Hasil exists() tidak digunakan
+
+Tanggal: 21 November 2026
+Fase: Loan API / Store
+
+Gejala:
+Menulis:
+$book->loans()
+    ->whereNull('returned_at')
+    ->exists();
+
+Namun hasil true atau false tidak ditampung dan tidak diperiksa.
+
+Penyebab:
+Belum memahami bahwa exists() mengembalikan boolean yang harus digunakan dalam conditional.
+
+Solusi:
+$sedangDipinjam = $book->loans()
+    ->whereNull('returned_at')
+    ->exists();
+
+Kemudian:
+if ($sedangDipinjam) {
+    // Tolak peminjaman
+}
+
+Pencegahan:
+Jika sebuah query mengembalikan nilai boolean, tentukan terlebih dahulu keputusan yang harus diambil berdasarkan true dan false.
+
+Waktu hilang:
+Tidak tercatat.
+
+---
+
+## DOSA 009 — Kondisi if terbalik
+
+Tanggal: 21 November 2026
+Fase: Loan API / Store
+
+Gejala:
+Menulis:
+if (!$sedangDipinjam)
+
+Padahal kondisi tersebut justru masuk ketika buku tidak sedang dipinjam.
+
+Penyebab:
+Belum memetakan arti true, false, dan operator negasi sebelum membuat kondisi.
+
+Solusi:
+if ($sedangDipinjam) {
+    // Tolak peminjaman dengan HTTP 409
+}
+
+Pencegahan:
+Tuliskan arti boolean dalam bahasa manusia sebelum menentukan kondisi if.
+
+Waktu hilang:
+Tidak tercatat.
+
+---
+
+## DOSA 010 — Return sebelum create()
+
+Tanggal: 21 November 2026
+Fase: Loan API / Store
+
+Gejala:
+Response sukses diletakkan sebelum perintah create().
+
+Penyebab:
+Belum memahami bahwa return menghentikan eksekusi method sehingga kode setelah return tidak dijalankan.
+
+Solusi:
+Urutan yang benar:
+1. Periksa kondisi.
+2. Simpan transaksi.
+3. Buat response sukses.
+
+Pencegahan:
+Selalu periksa urutan eksekusi dan posisi return sebelum menguji endpoint.
+
+Waktu hilang:
+Tidak tercatat.
+
+---
+
+## DOSA 011 — Hardcode book_id
+
+Tanggal: 21 November 2026
+Fase: Loan API / Store
+
+Gejala:
+'book_id' => 1
+
+Padahal user sudah mengirim book_id melalui Postman.
+
+Penyebab:
+Belum memanfaatkan hasil validasi yang sudah ditampung dalam $validated.
+
+Solusi:
+'book_id' => $validated['book_id']
+
+Pencegahan:
+Utamakan memakai data tervalidasi daripada memasukkan angka atau nilai tetap ke dalam proses penyimpanan.
+
+Waktu hilang:
+Tidak tercatat.
+
+---
+
+## DOSA 012 — Urutan mengambil buku dan membuat pinjaman
+
+Tanggal: 21 November 2026
+Fase: Loan API / Store
+
+Gejala:
+Awalnya membuat transaksi Loan sebelum mengambil dan memeriksa objek Book.
+
+Penyebab:
+Belum memahami bahwa semua kondisi bisnis harus diperiksa sebelum perubahan database dilakukan.
+
+Solusi:
+Ambil buku, periksa pinjaman aktif, lalu baru buat transaksi.
+
+Pencegahan:
+Selesaikan pengecekan prasyarat sebelum menjalankan operasi penyimpanan.
+
+Waktu hilang:
+Tidak tercatat.
+
+---
+
+## DOSA 013 — Salah memilih data response
+
+Tanggal: 21 November 2026
+Fase: Loan API / Store
+
+Gejala:
+Response sukses mengembalikan objek $book, padahal endpoint membuat transaksi peminjaman.
+
+Penyebab:
+Belum membedakan objek buku dengan objek transaksi peminjaman.
+
+Solusi:
+Simpan hasil create() ke variabel $loan dan kembalikan $loan di response JSON.
+
+Pencegahan:
+Response endpoint harus menggambarkan sumber daya yang sedang dibuat atau diubah.
+
+Waktu hilang:
+Tidak tercatat.
+
+---
+
+## DOSA 014 — Route POST belum didaftarkan
+
+Tanggal: 21 November 2026
+Fase: Loan API / Routing
+
+Gejala:
+route:list hanya menampilkan GET api/loans. POST belum muncul.
+
+Penyebab:
+Route store belum didaftarkan pada group auth:sanctum.
+
+Solusi:
+Menambahkan Route::post('/loans', [LoanController::class, 'store']) di dalam group yang tepat.
+
+Pencegahan:
+Setelah menambahkan endpoint, verifikasi dengan php artisan route:list sebelum melakukan pengujian Postman.
+
+Waktu hilang:
+Tidak tercatat.
+
+---
+
+# EVALUASI KEBIASAAN BELAJAR
+
+Bagian ini merupakan pengamatan selama praktik Laravel, bukan penilaian permanen terhadap kemampuan.
+
+## Kekurangan yang perlu diperbaiki
+
+1. Pemahaman konteks kode masih mudah tertukar.
+Kadang melihat pola di BookController lalu langsung menerapkannya ke LoanController tanpa terlebih dahulu memeriksa tujuan, model, dan kolom yang digunakan.
+
+2. Masih lemah dalam membedakan objek.
+Request, User, Book, dan Loan terkadang masih tertukar ketika menentukan objek yang akan dipanggil relasinya.
+
+3. Belum konsisten menelusuri alur data.
+Contohnya: data dari Postman, hasil validasi, relasi Eloquent, penyimpanan database, hingga response JSON. Sering memahami masing-masing potongan, tetapi perlu lebih banyak latihan menghubungkan semuanya.
+
+4. Boolean dan conditional masih perlu dilatih.
+Pernah salah membalik kondisi exists() dan belum langsung memahami arti negasi !.
+
+5. Masih sering mencari kepastian sebelum menguji hipotesis sendiri.
+Pertanyaan seperti "gini kah?" sering muncul. Ini tidak salah, tetapi ke depannya perlu dibiasakan untuk menjelaskan alasan pilihan kode sebelum meminta review.
+
+6. Mengingat lokasi file dan sintaks masih menjadi tantangan.
+Perlu membangun kebiasaan mengetahui file mana yang bertanggung jawab atas route, controller, model, middleware, dan database.
+
+7. Cenderung membutuhkan contoh sebelum mampu menyusun kode baru.
+Perlu lebih banyak latihan membuat implementasi dari requirement tanpa meniru persis kode yang sudah ada.
+
+## Kekuatan yang perlu dipertahankan
+
+1. Mau mencoba coding sendiri sebelum meminta solusi lengkap.
+2. Tidak mudah berhenti ketika menemui error.
+3. Aktif bertanya tentang alasan dan fungsi kode.
+4. Mulai mampu menghubungkan relasi database dengan kebutuhan sistem.
+5. Mau menguji kondisi berhasil dan gagal melalui Postman.
+6. Mampu memperbaiki kode setelah memahami letak kesalahannya.
+7. Memiliki kebiasaan membandingkan hasil response dengan ekspektasi sistem.
+8. Bersedia menerima koreksi langsung.
+
+# ATURAN BELAJAR KE DEPAN
+
+- Sebelum coding, jelaskan dahulu alur fitur dengan bahasa sendiri.
+- Sebelum memanggil method, identifikasi jenis objeknya.
+- Sebelum membuat if, tentukan arti true dan false.
+- Sebelum menyimpan data, periksa validasi dan seluruh prasyarat.
+- Setelah membuat route, cek route:list.
+- Setelah membuat endpoint, uji skenario berhasil dan gagal.
+- Jangan langsung menyalin kode AI. Coba tulis sendiri terlebih dahulu.
+- Setiap selesai belajar, jelaskan kembali apa yang baru dipahami tanpa melihat catatan.
+
+Tujuan akhir:
+Bukan sekadar mampu membuat aplikasi Laravel dengan bantuan AI, tetapi mampu membaca, memahami, merancang, menguji, dan memperbaiki sistem secara mandiri.
